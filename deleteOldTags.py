@@ -35,8 +35,6 @@ else:
 	else:
 		httpError(regResponse.status_code)
 
-print(imageList)
-
 for imageName in imageList:
 	print("Cleaning up tags for image: " + imageName)
 	regResponse = requests.get('http://'+REGISTRY_URL+':'+str(REGISTRY_PORT)+'/v2/'+imageName+'/tags/list', auth=(USERNAME, PASSWORD))
