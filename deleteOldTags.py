@@ -47,7 +47,7 @@ else:
 		for catalogEntry in catalogList:
 			imageList.append(catalogEntry)
 	else:
-		httpError(regResponse.status_code)
+		httpError(catalogResponse.status_code)
 
 for imageName in imageList:
 	print("Cleaning up tags for image: " + imageName)
