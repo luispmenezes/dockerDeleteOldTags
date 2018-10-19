@@ -1,7 +1,2 @@
 # dockerDeleteOldTags
-Python script to delete all but the most recent tag from a private registry.
-
-**Usage:**  
-    python deleteOldTags.py : Purge old tags for all images in the registry  
-    python deleteOldTags.py *image* : Purge old tags for *image*
-
+Deletes all but the most recent version tag from all the images in a private registry. An image name can be specified to purge only that image's tags. 
