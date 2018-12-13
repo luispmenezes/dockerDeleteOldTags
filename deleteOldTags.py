@@ -39,6 +39,7 @@ else:
 	try:
 		catalogResponse = requests.get('http://'+args.registryurl+':'+str(args.registryport)+'/v2/_catalog', auth=(USERNAME, PASSWORD))
 	except ConnectionError as error:
+		print("Failed to connect to registry!")
 		print(error)
 		exit(-1)
 
@@ -65,5 +66,9 @@ for imageName in imageList:
 			manifestHash = requests.get('http://'+args.registryurl+':'+str(args.registryport)+'/v2/'+imageName+'/manifests/'+tag, auth=(USERNAME, PASSWORD), headers=headers).headers['Docker-Content-Digest']
 			deleteResponse = requests.delete('http://'+args.registryurl+':'+str(args.registryport)+'/v2/'+imageName+'/manifests/'+manifestHash, auth=(USERNAME, PASSWORD), headers=headers) 
 			print(deleteResponse)
+
+	if regResponse.status_code == 405:
+		print("Received 405 (Method Not Allowed) : Delete is not enabled in the registry")
+		exit(-1)
 	else:
 		httpError(regResponse.status_code)
