@@ -4,10 +4,10 @@ import sys
 
 from requests.exceptions import ConnectionError
 
-REGISTRY_URL="mswifimesh-register.c.ptin.corppt.com"
+REGISTRY_URL="registryurl.com"
 REGISTRY_PORT=5000
-USERNAME=""
-PASSWORD=""
+USERNAME="username"
+PASSWORD="password"
 
 imageList = []
 
@@ -30,7 +30,6 @@ parser.add_argument("--registryurl", help="Set registry url", default=REGISTRY_U
 parser.add_argument("--registryport", help="Set registry port", default=REGISTRY_PORT)
 parser.add_argument("--registryuser", help="Set registry username", default=USERNAME)
 parser.add_argument("--registrypwd", help="Set registry password", default=PASSWORD)
-parser.add_argument("--verbose", help="increase output verbosity", action="store_true")
 args = parser.parse_args()
 
 if args.imagename != "all":
