@@ -4,10 +4,10 @@ import sys
 
 from requests.exceptions import ConnectionError
 
-REGISTRY_URL="registryurl.com"
+REGISTRY_URL="mswifimesh-register.c.ptin.corppt.com"
 REGISTRY_PORT=5000
-USERNAME="username"
-PASSWORD="password"
+USERNAME=""
+PASSWORD=""
 
 imageList = []
 
@@ -24,13 +24,13 @@ def httpError(errorCode):
 		print("Received Error Code " + errorCode)
 	exit(-1)
 
-
 parser = argparse.ArgumentParser()
 parser.add_argument("--imagename", help="Purge only tags from specific image", default="all")
 parser.add_argument("--registryurl", help="Set registry url", default=REGISTRY_URL)
 parser.add_argument("--registryport", help="Set registry port", default=REGISTRY_PORT)
 parser.add_argument("--registryuser", help="Set registry username", default=USERNAME)
 parser.add_argument("--registrypwd", help="Set registry password", default=PASSWORD)
+parser.add_argument("--verbose", help="increase output verbosity", action="store_true")
 args = parser.parse_args()
 
 if args.imagename != "all":
@@ -59,16 +59,33 @@ for imageName in imageList:
 		exit(-1)
 
 	if regResponse.status_code == 200:
-		tagList=sorted(regResponse.text.split("[")[1].split("]")[0].replace("\"","").split(","))[:-1]
+		tagList=sorted(regResponse.text.split("[")[1].split("]")[0].replace("\"","").split(","))
+		keepTag=""
+		deleteTagList=[]
+		print('\tImage tags: [%s]' % ', '.join(map(str, tagList)))
 
-		for tag in tagList:
-			print("Removing tag: " + tag)
-			manifestHash = requests.get('http://'+args.registryurl+':'+str(args.registryport)+'/v2/'+imageName+'/manifests/'+tag, auth=(USERNAME, PASSWORD), headers=headers).headers['Docker-Content-Digest']
-			deleteResponse = requests.delete('http://'+args.registryurl+':'+str(args.registryport)+'/v2/'+imageName+'/manifests/'+manifestHash, auth=(USERNAME, PASSWORD), headers=headers) 
-			print(deleteResponse)
+		if "latest" in tagList:
+			keepTag = "latest"
+		else:
+			keepTag = tagList[-1]
 
-	if regResponse.status_code == 405:
-		print("Received 405 (Method Not Allowed) : Delete is not enabled in the registry")
-		exit(-1)
-	else:
-		httpError(regResponse.status_code)
+		deleteTagList = tagList.copy()
+		deleteTagList.remove(keepTag)	
+		keepTagDigest=requests.get('http://'+args.registryurl+':'+str(args.registryport)+'/v2/'+imageName+'/manifests/'+keepTag, auth=(USERNAME, PASSWORD), headers=headers).headers['Docker-Content-Digest']
+		
+		print("\tKeeping tag: "+keepTag)
+
+		if deleteTagList is not None:
+			for tag in deleteTagList:	
+				deleteDigest = requests.get('http://'+args.registryurl+':'+str(args.registryport)+'/v2/'+imageName+'/manifests/'+tag, auth=(USERNAME, PASSWORD), headers=headers).headers['Docker-Content-Digest']
+				if deleteDigest != keepTagDigest:
+					print("\tRemoving tag: " + tag)
+
+					deleteResponse = requests.delete('http://'+args.registryurl+':'+str(args.registryport)+'/v2/'+imageName+'/manifests/'+deleteDigest, auth=(USERNAME, PASSWORD), headers=headers) 
+					if deleteResponse.status_code == 202:
+						print("\t\tOK!")
+					elif deleteResponse.status_code == 405:
+						print("\t\tReceived 405 (Method Not Allowed) : Delete is not enabled in the registry")
+						exit(-1)
+					else:
+						httpError(regResponse.status_code)
