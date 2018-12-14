@@ -68,7 +68,7 @@ for imageName in imageList:
 		else:
 			keepTag = tagList[-1]
 
-		deleteTagList = tagList.copy()
+		deleteTagList = tagList[:]
 		deleteTagList.remove(keepTag)	
 		keepTagDigest=requests.get('http://'+args.registryurl+':'+str(args.registryport)+'/v2/'+imageName+'/manifests/'+keepTag, auth=(USERNAME, PASSWORD), headers=headers).headers['Docker-Content-Digest']
 		
